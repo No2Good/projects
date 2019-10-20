@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.SmartParkingDao">
+
+    <resultMap id="BaseResultMap" type="SmartParking">
+        <id column="id" property="id"></id>
+        <result column="user_id" property="userId"></result>
+        <result column="garage" property="garage"></result>
+        <result column="carport" property="carport"></result>
+        <result column="total_time" property="totalTime"></result>
+    </resultMap>
+
+
+
+    <insert id="save" parameterType="SmartParking">
+        insert into smartparking (id, user_id, garage, carport, total_time)
+        values (null,  #{userId}, #{garage}, #{carport}, #{totalTime})
+    </insert>
+
+    <select id="selectSmartParkingByCondition" parameterType="SmartParking" resultMap="BaseResultMap">
+        select * from smartparking t
+        <where>
+            <if test="userId != null and userId != ''">
+                and t.user_id = #{userId}
+            </if>
+            <if test="garage != null and garage != ''">
+                and t.garage = #{garage}
+            </if>
+            <if test="carport != null and carport != ''">
+                and t.carport like concat('%',#{carport},'%')
+            </if>
+        </where>
+        order by t.total_time desc
+    </select>
+
+    <delete id="delete">
+        delete from smartparking
+    </delete>
+
+    <update id="update" parameterType="SmartParking">
+        update smartparking t set t.total_time = t.total_time + #{totalTime} where t.user_id = #{userId} and t.garage = #{garage} and t.carport = #{carport}
+    </update>
+
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.CarDao">
+
+    <resultMap id="BaseResultMap" type="Car">
+        <id column="car_id" property="carId"></id>
+        <result column="user_id" property="userId"></result>
+        <result column="license_number" property="licenseNumber"></result>
+    </resultMap>
+
+    <resultMap id="CarAndUser" type="Car" extends="BaseResultMap">
+        <association property="user" column="user_id" javaType="User" select="com.smartparking.dao.UserDao.selectUserById"></association>
+    </resultMap>
+
+
+    <select id="selectCarAll" resultMap="CarAndUser">
+        select * from car
+    </select>
+
+    <select id="selectCarById" parameterType="Integer" resultMap="CarAndUser">
+        select * from car where car_id = #{id}
+    </select>
+
+    <select id="selectCarByUserId" parameterType="Integer" resultMap="BaseResultMap">
+        select * from car where user_id = #{id}
+    </select>
+
+
+    <insert id="saveCar" parameterType="Car">
+        <selectKey keyProperty="carId" order="AFTER" resultType="Integer">
+            select last_insert_id()
+        </selectKey>
+        insert into Car (car_id, license_number, user_id)
+        values (#{carId}, #{licenseNumber}, #{userId})
+    </insert>
+
+
+    <delete id="deleteCar" parameterType="Integer">
+        <!-- 删除不能由别名(Car t) -->
+        delete from car where car_id = #{carId}
+    </delete>
+
+</mapper>

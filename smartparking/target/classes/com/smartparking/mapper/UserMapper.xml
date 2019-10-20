@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.UserDao">
+
+    <resultMap id="BaseResultMap" type="User">
+        <id column="user_id" property="userId"></id>
+        <result column="user_name" property="userName"></result>
+        <result column="user_account" property="userAccount"></result>
+        <result column="password" property="password"></result>
+        <result column="balance" property="balance"></result>
+    </resultMap>
+
+    <resultMap id="UserAndCarList" type="User" extends="BaseResultMap">
+        <collection property="carList" ofType="Car" column="user_id" select="com.smartparking.dao.CarDao.selectCarByUserId"></collection>
+    </resultMap>
+
+
+    <select id="selectUserAll" resultMap="UserAndCarList">
+        select * from user
+    </select>
+
+    <select id="selectUserById" parameterType="Integer" resultMap="UserAndCarList">
+        select * from user where user_id = #{id}
+    </select>
+
+    <select id="selectUsertByCondition" parameterType="UserQuery" resultMap="UserAndCarList">
+		select * from user t
+		  <where>
+              <if test="userId != null">
+                  and t.user_id = #{userId}
+              </if>
+              <if test="userName != null and userName != ''">
+                  and t.user_name like concat('%',#{userName},'%')
+              </if>
+              <if test="userAccount != null and userAccount != ''">
+                  and t.user_account = #{userAccount}
+              </if>
+              <if test="minBalance != null">
+                  and t.balance >= #{minBalance}
+              </if>
+              <if test="maxBalance != null">
+                  <![CDATA[
+                    and t.balance <= #{maxBalance}
+                  ]]>
+              </if>
+          </where>
+        order by t.user_id desc
+	</select>
+
+
+    <insert id="saveUser" parameterType="User">
+        <selectKey keyProperty="userId" order="AFTER" resultType="Integer">
+            select last_insert_id()
+        </selectKey>
+        insert into user (user_id, user_name, user_account, password)
+        values (#{userId}, #{userName}, #{userAccount}, #{password})
+    </insert>
+
+
+    <delete id="deleteUser" parameterType="Integer">
+        <!-- 删除不能由别名(User t) -->
+        delete from user where user_id = #{userId}
+    </delete>
+
+
+    <!--
+        动态修改：使用<set>标签出来，其能出来掉最后一个逗号，必须加上 t.user_id = #{personId},
+        flushCache：是否熟悉缓存(清掉缓存)，true(默认)是刷新，false是不刷新
+    -->
+    <update id="updateUser" parameterType="User">
+        update user t
+        <set>
+            t.user_id = #{userId},
+            <if test="userName != null">
+                t.user_name = #{userName},
+            </if>
+            <if test="userAccount != null">
+                t.user_account = #{userAccount},
+            </if>
+            <if test="password != null">
+                t.password = #{password},
+            </if>
+            <if test="balance != null and balance != ''">
+                t.balance = #{balance},
+            </if>
+        </set>
+        where t.user_id = #{userId}
+    </update>
+
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.GarageDao">
+
+    <resultMap id="BaseResultMap" type="Garage">
+        <id column="garage_id" property="garageId"></id>
+        <result column="garage_name" property="garageName"></result>
+        <result column="price" property="price"></result>
+    </resultMap>
+
+    <select id="selectGarageById" parameterType="Integer" resultMap="BaseResultMap">
+        select * from garage t where t.garage_id = #{garageId}
+    </select>
+
+    <select id="selectGarageByGarageName" parameterType="String" resultMap="BaseResultMap">
+        select * from garage t where t.garage_name = #{garageName}
+    </select>
+
+</mapper>

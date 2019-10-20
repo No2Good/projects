@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.ReserveOrdersDao">
+
+    <resultMap id="BaseResultMap" type="ReserveOrders">
+        <id column="reserve_orders_id" property="reserveOrdersId"></id>
+        <result column="user_id" property="userId"></result>
+        <result column="carport_id" property="carportId"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+    </resultMap>
+
+    <resultMap id="ReserveOrdersAndCarport" type="ReserveOrders" extends="BaseResultMap">
+        <association property="carport" column="carport_id" javaType="Carport" select="com.smartparking.dao.CarportDao.selectCarportById"></association>
+    </resultMap>
+
+    <insert id="save" parameterType="ReserveOrders">
+        <selectKey keyProperty="reserveOrdersId" order="AFTER" resultType="Integer">
+            select last_insert_id()
+        </selectKey>
+        insert into reserve_orders (reserve_orders_id, user_id, carport_id, start_time, end_time)
+        values (null, #{userId}, #{carportId}, #{startTime},#{endTime})
+    </insert>
+
+    <select id="selectAll" parameterType="ReserveOrders" resultMap="ReserveOrdersAndCarport">
+        <![CDATA[
+          select * from reserve_orders t where t.user_id = #{userId} and t.end_time > #{endTime} order by reserve_orders_id desc
+        ]]>
+    </select>
+
+</mapper>

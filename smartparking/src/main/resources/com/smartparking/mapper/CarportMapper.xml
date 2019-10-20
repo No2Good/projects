@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace:映射文件的命名空间,规范是映射文件的包的全路径
+ -->
+<mapper namespace="com.smartparking.dao.CarportDao">
+
+    <resultMap id="BaseResultMap" type="Carport">
+        <id column="carport_id" property="carportId"></id>
+        <result column="garage_id" property="garageId"></result>
+        <result column="cposition" property="cposition"></result>
+        <result column="is_use" property="isUse"></result>
+        <result column="end_time" property="endTime"></result>
+    </resultMap>
+
+    <resultMap id="CarportAndGarage" type="Carport" extends="BaseResultMap">
+        <association property="garage" column="garage_id" javaType="Garage" select="com.smartparking.dao.GarageDao.selectGarageById"></association>
+    </resultMap>
+
+    <insert id="save" parameterType="Carport">
+        <selectKey keyProperty="garageId" order="AFTER" resultType="Integer">
+            select last_insert_id()
+        </selectKey>
+        insert into carport (carport_id, garage_id, cposition, is_use, end_time)
+        values (null, #{garageId}, #{cposition}, #{isUse},#{endTime})
+    </insert>
+
+    <select id="selectCarportByCondition" parameterType="CarportQuery" resultMap="CarportAndGarage">
+        select * from carport t
+        <where>
+            <if test="garageId != null and garageId != ''">
+                and t.garage_id = #{garageId}
+            </if>
+            <if test="carportId != null and carportId != ''">
+                and t.carport_id = #{carportId}
+            </if>
+            <if test="cposition != null and cposition != ''">
+                and t.cposition like concat('%',#{cposition},'%')
+            </if>
+            <if test="isUse != null and isUse != ''">
+                and t.is_use  = #{isUse}
+            </if>
+        </where>
+        order by t.carport_id asc
+    </select>
+
+    <select id="selectCarportById" parameterType="Integer" resultMap="CarportAndGarage">
+        select * from carport t where t.carport_id = #{carportId}
+    </select>
+
+
+    <update id="updateCarport" parameterType="CarportQuery">
+        <![CDATA[
+                update carport t set t.is_use = '否', t.end_time = null where t.end_time < #{nowTime}
+        ]]>
+    </update>
+
+    <update id="updateCarportReserve" parameterType="Carport">
+      update carport t set t.is_use = '已预约', t.end_time = #{endTime} where t.carport_id = #{carportId}
+    </update>
+
+</mapper>
